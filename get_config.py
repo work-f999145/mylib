@@ -1,6 +1,6 @@
 import importlib.util
 from pathlib import Path
-from A00_default_config import ParserConfig
+from B00_default_config import ParserConfig
 
 
 # Function to update configuration from a module
