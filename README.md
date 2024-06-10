@@ -8,7 +8,7 @@ Git Submodule позволяет включить один репозитори�
 
    - В каждом проекте, который использует mylib, выполните команду:
     ```bash
-    git submodule add <URL_репозитория_mylib> mylib
+    git submodule add git@github.com:work-f999145/mylib.git mylib
     git submodule update --init --recursive
     ```
 3. Обновление подмодуля:
