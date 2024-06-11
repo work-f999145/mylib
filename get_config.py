@@ -1,7 +1,13 @@
 import importlib.util
 from pathlib import Path
 from B00_default_config import ParserConfig
+# from typing import NamedTuple
 
+# class Proxy(NamedTuple):
+#     IP: str
+#     PORT: str
+#     USER: str
+#     PASS: str
 
 # Function to update configuration from a module
 def update_config_from_module(config, module):
