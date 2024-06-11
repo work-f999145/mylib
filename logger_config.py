@@ -4,15 +4,6 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-
-# Конфигурация логирования
-log_dir = Path("logs")
-log_file = log_dir.joinpath("app.json")
-
-# Создание директории для логов, если она не существует
-log_dir.mkdir(parents=True, exist_ok=True)
-
-
 # Настройка логирования
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -27,15 +18,23 @@ class JsonFormatter(logging.Formatter):
             log_record['user_data'] = record.user_data
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
-        return json.dumps(log_record)
+        return json.dumps(log_record, ensure_ascii=False, indent=4)
 
 
-def setup_logger(name, file_level=logging.DEBUG, console_level=logging.INFO, extra_data=None):
+def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, extra_data=None):
+    # Конфигурация логирования
+    log_dir = Path("logs")
+    log_file = log_dir.joinpath(f"{log_file_name}.json")
+
+    # Создание директории для логов, если она не существует
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     
     if not logger.hasHandlers():
-        file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10**8, backupCount=5)
+        # file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10**8, backupCount=5)
+        file_handler = logging.FileHandler(log_file, mode='w')
         file_handler.setLevel(file_level)
         file_handler.setFormatter(JsonFormatter())
         logger.addHandler(file_handler)

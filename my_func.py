@@ -8,13 +8,26 @@ import pandas as pd
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import json
-
+from pydantic import BaseModel, ValidationError
+from typing import Callable
 
 
 class Coordinates(NamedTuple):
     lat: float
     long: float
 
+# Декоратор для валидации аргументов функции
+def validate_args(model: BaseModel):
+    def decorator(func: Callable):
+        def wrapper(*args, **kwargs):
+            try:
+                # Валидация аргументов с использованием модели
+                validated_args: BaseModel = model(**kwargs)
+            except ValidationError as e:
+                return e
+            return func(*args, **validated_args.model_dump())
+        return wrapper
+    return decorator
 
 
 def separation_frame_row(input_df: pd.DataFrame, rows: int=500) -> list[pd.DataFrame]:
