@@ -34,7 +34,7 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
     
     if not logger.hasHandlers():
         # file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10**8, backupCount=5)
-        file_handler = logging.FileHandler(log_file, mode='w')
+        file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8')
         file_handler.setLevel(file_level)
         file_handler.setFormatter(JsonFormatter())
         logger.addHandler(file_handler)

@@ -78,12 +78,8 @@ def get_list_logg_lst_claster(input_df: pd.DataFrame, cols_name: list[str, str],
 
 
 
-def get_cord() -> pd.DataFrame:
-    
-    p_dictionaries = Path('data','dictionaries')
-
-
-    sity_df = (pd.read_parquet(p_dictionaries.joinpath('city.parquet'))
+def get_cord(wiki_city: pd.DataFrame) -> pd.DataFrame:
+    sity_df = (wiki_city
                 .sort_values('population', ascending=False, ignore_index=True)
                 .assign(pop = lambda x: x['population'].cumsum()/x['population'].sum())
                 .assign(pop = lambda x: x.apply(class_type, axis=1))
