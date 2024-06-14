@@ -30,6 +30,22 @@ def validate_args(model: BaseModel):
     return decorator
 
 
+
+
+def json_encode(df_: pd.DataFrame):
+    def my_json_encode(x):
+        if isinstance(x, (tuple, list)):
+            return json.dumps(x, ensure_ascii=False)
+        else:
+            return 'null'
+    
+    for col in df_.select_dtypes('object').columns:
+        df_[col] = df_[col].apply(my_json_encode).astype('string')
+    
+    return df_
+
+
+
 def separation_frame_row(input_df: pd.DataFrame, rows: int=500) -> list[pd.DataFrame]:
     """
         Функция для дробления DataFrame.
@@ -41,7 +57,13 @@ def separation_frame_row(input_df: pd.DataFrame, rows: int=500) -> list[pd.DataF
     return out_list
 
 
-
+def _save_df_to_excel(df_:pd.DataFrame, name: str, folder: Path):
+    with pd.ExcelWriter(
+                    folder.joinpath(f'{name}.xlsx'),
+                    engine='xlsxwriter',
+                    engine_kwargs={'options': {'strings_to_urls': False}}
+                    ) as writer:
+        df_.to_excel(writer, index=False)
 
 
 
@@ -108,6 +130,33 @@ def pd_series_dict(df:pd.DataFrame, col: str, prefix: str|None = None, suffix: s
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# EXPORT TO EXCEL
+
 def export_to_excel():
     p_folders = Path('data')
     file_list, file_list_n = ['', '']
@@ -168,7 +217,7 @@ def export_to_excel():
             start = datetime.now()
             print(f'Сохранение {name_file.value}.xlsx', end=': ')
             df = pd.read_parquet(file_list[dropdown.value])
-            df.to_excel(Path('data', 'excel', f'{name_file.value}.xlsx'), index=False)
+            _save_df_to_excel(df, name_file.value, Path('data', 'excel'))
             print('выполнено за', str((datetime.now() - start)))
 
 
@@ -279,23 +328,3 @@ def export_to_excel():
 
     display(tog_buttom, grid, out2)
     
-def _save_df_to_excel(df_:pd.DataFrame, name: str, folder: Path):
-    with pd.ExcelWriter(
-                    folder.joinpath(f'{name}.xlsx'),
-                    engine='xlsxwriter',
-                    engine_kwargs={'options': {'strings_to_urls': False}}
-                    ) as writer:
-        df_.to_excel(writer, index=False)
-
-
-def json_encode(df_: pd.DataFrame):
-    def my_json_encode(x):
-        if isinstance(x, (tuple, list)):
-            return json.dumps(x, ensure_ascii=False)
-        else:
-            return 'null'
-    
-    for col in df_.select_dtypes('object').columns:
-        df_[col] = df_[col].apply(my_json_encode).astype('string')
-    
-    return df_
