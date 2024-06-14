@@ -3,6 +3,7 @@ import logging.handlers
 import json
 from datetime import datetime
 from pathlib import Path
+from tqdm import tqdm
 
 # Настройка логирования
 class JsonFormatter(logging.Formatter):
@@ -14,14 +15,23 @@ class JsonFormatter(logging.Formatter):
             "function": record.funcName,
             "message": record.getMessage()
         }
-        if hasattr(record, 'user_data'):
-            log_record['user_data'] = record.user_data
+        if hasattr(record, 'data'):
+            log_record['data'] = record.data
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
         return json.dumps(log_record, ensure_ascii=False, indent=4)
 
+class TqdmStream:
+    @staticmethod
+    def write(msg):
+        if msg.strip():  # избегаем пустых строк
+            tqdm.write(msg.strip())
 
-def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, extra_data=None):
+    @staticmethod
+    def flush():
+        pass  # метод flush не нужен, но он должен быть определен
+
+def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, tqdm_ex=False, extra_data=None):
     # Конфигурация логирования
     log_dir = Path("logs")
     log_file = log_dir.joinpath(f"{log_file_name}.json")
@@ -39,7 +49,10 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
         file_handler.setFormatter(JsonFormatter())
         logger.addHandler(file_handler)
         
-        console_handler = logging.StreamHandler()
+        if tqdm_ex:
+            console_handler = logging.StreamHandler(stream=TqdmStream)
+        else:
+            console_handler = logging.StreamHandler()
         console_handler.setLevel(console_level)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s')
         console_handler.setFormatter(formatter)
