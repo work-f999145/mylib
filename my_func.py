@@ -130,6 +130,28 @@ def pd_series_dict(df:pd.DataFrame, col: str, prefix: str|None = None, suffix: s
 
 
 
+# Рекурсивная функция для создания вложенного словаря
+def build_nested_dict(data: dict) -> dict:
+    def insert(d, keys, value):
+        if not isinstance(keys, (list, tuple)):
+            keys = [keys]  # Если keys не список или кортеж, преобразуем его в список
+        
+        key = keys[0]
+        if len(keys) == 1:
+            if pd.notna(value) and value != 0:  # Удаление NaN и нулевых значений
+                d[key] = value
+        else:
+            if key not in d:
+                d[key] = {}
+            insert(d[key], keys[1:], value)
+            if not d[key]:  # Удаление пустых словарей
+                del d[key]
+    
+    nested_dict = {}
+    for keys, value in data.items():
+        insert(nested_dict, keys, value)
+    
+    return nested_dict
 
 
 
