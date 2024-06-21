@@ -25,7 +25,7 @@ class TqdmStream:
     @staticmethod
     def write(msg):
         if msg.strip():  # избегаем пустых строк
-            tqdm.write(msg.strip())
+            tqdm.write(msg.rstrip())
 
     @staticmethod
     def flush():
@@ -53,6 +53,7 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
             console_handler = logging.StreamHandler(stream=TqdmStream)
         else:
             console_handler = logging.StreamHandler()
+        # console_handler = logging.StreamHandler(stream=TqdmStream)
         console_handler.setLevel(console_level)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s')
         console_handler.setFormatter(formatter)
