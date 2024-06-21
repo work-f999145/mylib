@@ -23,7 +23,7 @@ filters = list(filter(lambda x: x.suffix == '.py', p_filters.iterdir()))
 for fil in filters:
     # Attempt to load user configuration file
     try:
-        spec = importlib.util.spec_from_file_location('UserConfigModule', fil)
+        spec = importlib.util.spec_from_file_location('B00_default_config', fil)
         user_config_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(user_config_module)
         update_config_from_module(ParserConfig, user_config_module.ParserConfig)
