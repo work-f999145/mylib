@@ -31,7 +31,7 @@ class TqdmStream:
     def flush():
         pass  # метод flush не нужен, но он должен быть определен
 
-def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, tqdm_ex=False, extra_data=None):
+def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, tqdm_ex=False):
     # Конфигурация логирования
     log_dir = Path("logs")
     log_file = log_dir.joinpath(f"{log_file_name}.json")
@@ -55,7 +55,7 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
             console_handler = logging.StreamHandler()
         # console_handler = logging.StreamHandler(stream=TqdmStream)
         console_handler.setLevel(console_level)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s - %(data)s')
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
     
@@ -67,4 +67,4 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
             kwargs['extra'] = extra
             return msg, kwargs
 
-    return CustomAdapter(logger, extra_data or {})
+    return CustomAdapter(logger, {'data': None})
