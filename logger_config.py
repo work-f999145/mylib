@@ -55,7 +55,7 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
             console_handler = logging.StreamHandler()
         # console_handler = logging.StreamHandler(stream=TqdmStream)
         console_handler.setLevel(console_level)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s - %(data)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s')
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
     
