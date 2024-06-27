@@ -154,6 +154,19 @@ def build_nested_dict(data: dict) -> dict:
     return nested_dict
 
 
+def clean_dict(d: dict):
+    """Очистка словарая от NaN значений"""
+    if not isinstance( d, dict):
+        return d
+    cleaned_dict = {}
+    for key, value in d.items():
+        if isinstance(value, dict):
+            cleaned_value = clean_dict(value)
+            if cleaned_value:
+                cleaned_dict[key] = cleaned_value
+        elif pd.notna(value):
+            cleaned_dict[key] = value
+    return cleaned_dict
 
 
 
