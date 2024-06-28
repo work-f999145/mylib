@@ -1,9 +1,10 @@
 import logging
 import logging.handlers
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from tqdm import tqdm
+import numpy as np
+
 
 # Настройка логирования
 class JsonFormatter(logging.Formatter):
@@ -16,22 +17,32 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage()
         }
         if hasattr(record, 'data'):
-            log_record['data'] = record.data
+            log_record['data'] = self._convert_to_serializable(record.data)
+        if hasattr(record, 'data_stream'):
+            log_record['data_stream'] = self._convert_to_serializable(record.data_stream)
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
         return json.dumps(log_record, ensure_ascii=False, indent=4)
 
-class TqdmStream:
-    @staticmethod
-    def write(msg):
-        if msg.strip():  # избегаем пустых строк
-            tqdm.write(msg.rstrip())
+    def _convert_to_serializable(self, data):
+        if isinstance(data, np.integer):
+            return int(data)
+        if isinstance(data, np.floating):
+            return float(data)
+        if isinstance(data, np.ndarray):
+            return data.tolist()
+        if isinstance(data, datetime):
+            return data.isoformat()
+        if isinstance(data, timedelta):
+            return str(data)
+        if isinstance(data, dict):
+            return {key: self._convert_to_serializable(value) for key, value in data.items()}
+        if isinstance(data, (list, tuple)):
+            return [self._convert_to_serializable(item) for item in data]
+        return data
 
-    @staticmethod
-    def flush():
-        pass  # метод flush не нужен, но он должен быть определен
 
-def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO, tqdm_ex=False):
+def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=logging.INFO):
     # Конфигурация логирования
     log_dir = Path("logs")
     log_file = log_dir.joinpath(f"{log_file_name}.json")
@@ -49,13 +60,9 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
         file_handler.setFormatter(JsonFormatter())
         logger.addHandler(file_handler)
         
-        if tqdm_ex:
-            console_handler = logging.StreamHandler(stream=TqdmStream)
-        else:
-            console_handler = logging.StreamHandler()
-        # console_handler = logging.StreamHandler(stream=TqdmStream)
+        console_handler = logging.StreamHandler()
         console_handler.setLevel(console_level)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(funcName)s - %(levelname)s - %(message)s - %(data_stream)s')
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
     
@@ -67,4 +74,4 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
             kwargs['extra'] = extra
             return msg, kwargs
 
-    return CustomAdapter(logger, {'data': None})
+    return CustomAdapter(logger, {'data': None, 'data_stream': None})
