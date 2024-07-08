@@ -139,3 +139,31 @@ def timeit(_logger: logging.LoggerAdapter, msg: str = '', level: str = 'INFO', _
         _logger.info(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
     else:
         _logger.debug(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
+        
+        
+class TimeIt:
+    def __init__(self, logger: logging.LoggerAdapter, msg: str = '', level: str = 'INFO',) -> None:
+        self.logger = logger
+        self.msg = msg
+        self.level = level
+        
+    def __enter__(self):
+        self.start_time = datetime.now()
+        self.data = ""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        elapsed_time = datetime.now() - self.start_time
+        if isinstance(self.data, dict):
+            data = self.data.copy()
+            data['msg'] = self.msg
+            data['timeit'] = elapsed_time
+        else:
+            data = {'msg': self.msg, 'timeit': elapsed_time, 'extra': str(self.data)}
+        
+        data_stream = []
+        for key, value in data.items():
+            data_stream.append(f'{key}: {value}')
+        data_stream = '; '.join(data_stream)
+        
+        self.logger.info(f'TimeIt', extra={'data': [data], 'data_stream': data_stream})
