@@ -151,8 +151,29 @@ class TimeIt:
         self.start_time = datetime.now()
         self.data = ""
         return self
+    
+    async def __aenter__(self):
+        self.start_time = datetime.now()
+        self.data = ""
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        elapsed_time = datetime.now() - self.start_time
+        if isinstance(self.data, dict):
+            data = self.data.copy()
+            data['msg'] = self.msg
+            data['timeit'] = elapsed_time
+        else:
+            data = {'msg': self.msg, 'timeit': elapsed_time, 'extra': str(self.data)}
+        
+        data_stream = []
+        for key, value in data.items():
+            data_stream.append(f'{key}: {value}')
+        data_stream = '; '.join(data_stream)
+        
+        self.logger.info(f'TimeIt', extra={'data': [data], 'data_stream': data_stream})
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         elapsed_time = datetime.now() - self.start_time
         if isinstance(self.data, dict):
             data = self.data.copy()
