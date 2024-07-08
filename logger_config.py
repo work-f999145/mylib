@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from mylib.my_func import _save_df_to_parquet
+from contextlib import contextmanager
 
 def json_encode(df_: pd.DataFrame):
     def my_json_encode(x):
@@ -118,3 +119,20 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
         logger.addHandler(console_handler)
 
     return CustomAdapter(logger, {'data': None, 'data_stream': None}, log_file)
+
+
+
+
+
+
+@contextmanager
+def timeit(_logger: setup_logger, msg: str = '', _data: dict={}):
+    start_time = datetime.now()
+    yield
+    elapsed_time = datetime.now() - start_time
+    if isinstance(_data, dict):
+        _data['msg'] = msg
+        _data['timeit'] = elapsed_time
+    else:
+        _data = {'msg': msg, 'timeit': elapsed_time}
+    _logger.info(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
