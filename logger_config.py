@@ -164,7 +164,9 @@ class TimeIt:
             data['msg'] = self.msg
             data['timeit'] = elapsed_time
         else:
-            data = {'msg': self.msg, 'timeit': elapsed_time, 'extra': str(self.data)}
+            data = {'msg': self.msg, 'timeit': elapsed_time}
+            if self.data:
+                data['extra'] = str(self.data)
         
         data_stream = []
         for key, value in data.items():
@@ -180,7 +182,9 @@ class TimeIt:
             data['msg'] = self.msg
             data['timeit'] = elapsed_time
         else:
-            data = {'msg': self.msg, 'timeit': elapsed_time, 'extra': str(self.data)}
+            data = {'msg': self.msg, 'timeit': elapsed_time}
+            if self.data:
+                data['extra'] = str(self.data)
         
         data_stream = []
         for key, value in data.items():
