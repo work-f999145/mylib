@@ -126,7 +126,7 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
 
 
 @contextmanager
-def timeit(_logger: setup_logger, msg: str = '', _data: dict={}):
+def timeit(_logger: logging.LoggerAdapter, msg: str = '', level: str = 'INFO', _data: dict={}):
     start_time = datetime.now()
     yield
     elapsed_time = datetime.now() - start_time
@@ -135,4 +135,7 @@ def timeit(_logger: setup_logger, msg: str = '', _data: dict={}):
         _data['timeit'] = elapsed_time
     else:
         _data = {'msg': msg, 'timeit': elapsed_time}
-    _logger.info(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
+    if level == 'INFO':
+        _logger.info(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
+    else:
+        _logger.debug(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
