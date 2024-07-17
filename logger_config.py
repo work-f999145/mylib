@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from mylib.my_func import _save_df_to_parquet
-from contextlib import contextmanager
+import re
 
 def json_encode(df_: pd.DataFrame):
     def my_json_encode(x):
@@ -83,14 +83,29 @@ class CustomAdapter(logging.LoggerAdapter):
         
         with open(log_file, 'r', encoding='utf-8') as file:
             log_tmp = file.read()
-            df = (pd.json_normalize(json.loads(('['+log_tmp+']').replace('}\n{', '},\n{')))
-                  .convert_dtypes()
-                  .assign(timestamp=lambda x: pd.to_datetime(x['timestamp']))
-                  .pipe(json_encode)
-                  )
+        # Иногда в логах могут попадаться незаконченые обрывки логов,
+        # Эти обрывки удаляются из логов 
+        sa: pd.Series = (pd.Series(re.split(r'(^\})', log_tmp, flags=re.MULTILINE))
+                    .str.strip()
+                    .replace(('}', ''), pd.NA).dropna()
+                    .apply(lambda x: re.split(r'(^\{)', x, flags=re.MULTILINE))
+                    )
+        sa = (sa[sa.str.len() > 1]
+                    .explode()
+                    .str.strip()
+                    .replace(('{', ''), pd.NA).dropna()
+                    )
+
+        sa = '{' + sa + '}'
         
-            # Сохранение DataFrame в Parquet
-            _save_df_to_parquet(df, log_file.stem, parquet_dir)
+        df = (pd.json_normalize(sa.apply(json.loads))
+                .convert_dtypes()
+                .assign(timestamp=lambda x: pd.to_datetime(x['timestamp']))
+                .pipe(json_encode)
+                )
+        
+        # Сохранение DataFrame в Parquet
+        _save_df_to_parquet(df, log_file.stem, parquet_dir)
             
             # Удаление оригинального лог файла
         log_file.unlink()
@@ -125,22 +140,6 @@ def setup_logger(name, log_file_name, file_level=logging.DEBUG, console_level=lo
 
 
 
-@contextmanager
-def timeit(_logger: logging.LoggerAdapter, msg: str = '', level: str = 'INFO', _data: dict={}):
-    start_time = datetime.now()
-    yield
-    elapsed_time = datetime.now() - start_time
-    if isinstance(_data, dict):
-        _data['msg'] = msg
-        _data['timeit'] = elapsed_time
-    else:
-        _data = {'msg': msg, 'timeit': elapsed_time}
-    if level == 'INFO':
-        _logger.info(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
-    else:
-        _logger.debug(f'TimeIt', extra={'data': [_data], 'data_stream': f'{msg}: {elapsed_time}'})
-        
-        
 class TimeIt:
     def __init__(self, logger: logging.LoggerAdapter, msg: str = '', level: str = 'INFO',) -> None:
         self.logger = logger
